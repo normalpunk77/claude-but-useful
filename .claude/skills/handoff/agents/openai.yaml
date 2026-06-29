@@ -1,0 +1,7 @@
+interface:
+  display_name: "Handoff"
+  short_description: "Generate or consume cross-session handoffs so work resumes seamlessly"
+  brand_color: "#9333EA"
+  default_prompt: "Generate a session handoff file so the next session can resume without re-reading the transcript"
+policy:
+  allow_implicit_invocation: false

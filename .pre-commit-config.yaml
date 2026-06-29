@@ -1,0 +1,56 @@
+# pre-commit framework config — fast, cross-client commit gates.
+#
+# Why both this AND .claude/settings.json hooks? The Claude Code PreToolUse hooks only fire
+# inside Claude Code. A manual `git commit` (or any other tool) bypasses them. This file is the
+# cross-client gate: it fires on every `git commit` regardless of who runs it.
+#
+# Install:
+#   pipx install pre-commit   # or: brew install pre-commit
+#   pre-commit install --install-hooks --hook-type commit-msg
+#
+# Run on the whole tree once:
+#   pre-commit run --all-files
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files
+        args: ['--maxkb=5000']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        args: ['--branch', 'main', '--branch', 'master']
+
+  # Conventional Commits format on the commit message.
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: ['feat', 'fix', 'chore', 'docs', 'refactor', 'test', 'ci', 'perf', 'style', 'build', 'revert']
+
+  # Local guards — these mirror the Claude Code PreToolUse hooks so every commit is gated
+  # equally, whatever client made it.
+  - repo: local
+    hooks:
+      - id: never-secrets
+        name: Block secrets in the staged diff (Anthropic/OpenAI/AWS/GitHub/api_key)
+        entry: .claude/hooks/git-pre-commit-checks.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: file-size
+        name: File-size gate (warn over 300 LOC, block over 500 LOC)
+        entry: .claude/hooks/check-file-size.sh
+        language: system
+        pass_filenames: false
+        always_run: true
