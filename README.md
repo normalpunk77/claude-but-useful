@@ -1,7 +1,7 @@
 # claude-but-useful
 
-**A drop-in pack of Claude Code hooks + the `handoff` skill that make working with AI on your
-code safer and less forgetful.** Drop it into any project and it quietly stops the dumb stuff —
+**A drop-in pack of Claude Code hooks + two skills (`handoff` and `wrap-feature`) that make
+working with AI on your code safer and less forgetful.** Drop it into any project and it quietly stops the dumb stuff —
 committing secrets, committing to `main`, files ballooning out of control — auto-formats your
 edits, surfaces a messy working tree, and nudges the AI to read before it writes.
 
@@ -29,9 +29,11 @@ tooling, nothing to learn.
 │   ├── check-file-size.sh
 │   └── tidy.sh
 └── skills/
-    └── handoff/           # cross-session handoff skill (write/read a resume doc)
-        ├── SKILL.md
-        └── agents/openai.yaml
+    ├── handoff/           # cross-session handoff skill (write/read a resume doc)
+    │   ├── SKILL.md
+    │   └── agents/openai.yaml
+    └── wrap-feature/      # end-of-task finish: verify, red-team, commit, open a PR
+        └── SKILL.md
 .pre-commit-config.yaml    # cross-client commit gates (secrets, file-size, conventional commits)
 ```
 
@@ -56,6 +58,45 @@ Tool-agnostic session handoff. When you're pausing or switching machines/tools, 
 pushes your work, then writes a structured resume document to `~/.handoff/` and hands you a
 copy-paste prompt to bootstrap the next session — instead of re-reading the whole transcript.
 On the next session it auto-detects and consumes the matching handoff.
+
+## The `wrap-feature` skill
+
+The end-of-task finish. When you say "done", "wrap this up", or "ready to ship", instead of a
+careless commit it runs a real quality pass and **lands the work as a Pull Request**:
+
+1. Captures the exact scope (the diff vs. the trunk + working tree).
+2. Proves it runs — discovers and runs your real checks (typecheck / lint / tests / `pre-commit`)
+   and shows the output, not "should work".
+3. Checks the change is right for **every** user, not just the test fixtures — verified with a
+   fresh input.
+4. Re-checks the blast radius (callers / flows that depend on what changed).
+5. Cleans the diff (no debug prints, scratch files, TEMP markers).
+6. Red-teams the change — and **won't re-review** work it already reviewed (an idempotent ledger
+   stored in `git notes`, so it's not wasted effort across sessions/worktrees).
+7. Commits with a Conventional-Commit message, pushes the branch, and **opens (or reuses) a PR**.
+
+### This is a PR-based workflow — set git up for it
+
+`wrap-feature` assumes a sane, branch-and-PR git setup. It will **never** push work straight onto
+your trunk. For it to behave, your repo should be wired like this:
+
+- **A protected trunk** (`main`, or `main` + a `dev` integration branch). Protect it on the host
+  (GitHub branch protection) so nothing lands without a PR + green CI. The `never-commit-to-main`
+  hook in this kit enforces the same rule locally.
+- **Feature branches, always.** Each piece of work lives on its own `feat/…` / `fix/…` branch;
+  `wrap-feature` opens a PR from it into the trunk. If you're sitting on the trunk, it branches
+  first rather than committing there.
+- **PRs + CI as the gate.** Work lands by merging the PR once checks pass — not by direct push.
+  If your project uses an auto-merge label or a fixed target branch, tell Claude and it follows
+  that convention.
+- **Worktrees for isolation (recommended).** One branch per
+  [git worktree](https://git-scm.com/docs/git-worktree) means parallel tasks never clobber each
+  other's working tree. The `git notes` red-team ledger is shared across all worktrees (notes
+  live in the common `.git`), so a review done in one worktree is trusted in another. The
+  `session-start-tidy` / `session-end-tidy` hooks keep those worktrees and branches honest.
+
+If your project doesn't use PRs at all, `wrap-feature` still does the full verification pass — it
+just pushes the branch and tells you so explicitly instead of opening a PR.
 
 ## Use it (the lazy way) ✅
 

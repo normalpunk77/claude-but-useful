@@ -92,8 +92,8 @@ Detect an existing handoff, parse it, verify freshness, and resume.
    modified_files: [path1, path2, ...]
    staged_files: [path1, ...]
    untracked_files: [path1, ...]
-   loaded_skills: [coding-standards, ...]
-   mcps_used: [serena, ...]
+   loaded_skills: [...]
+   mcps_used: [...]
    active_subagents: [{name: "code_mapper", status: "completed"}, ...]
    resume_hint: <one-line "do this first" for the next session>
    ---
