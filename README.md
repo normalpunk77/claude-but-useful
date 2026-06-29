@@ -1,12 +1,15 @@
 # claude-but-useful
 
-A drop-in set of **Claude Code hooks** + the **`handoff` skill** that make AI-paired coding
-safer and less forgetful. Copy the `.claude/` folder into any project and you get guardrails
-that fire automatically — block secrets and commits to `main`, keep files small, auto-format
-edits, surface a dirty tree, and re-inject engineering discipline every turn.
+**A drop-in pack of Claude Code hooks + the `handoff` skill that make working with AI on your
+code safer and less forgetful.** Drop it into any project and it quietly stops the dumb stuff —
+committing secrets, committing to `main`, files ballooning out of control — auto-formats your
+edits, surfaces a messy working tree, and nudges the AI to read before it writes.
 
-Everything here is **project-agnostic**. No language lock-in, no proprietary tooling — just
-git, bash, and (for two hooks) `jq`.
+> **You could open the files and hooks and analyze them, or just be a normal person and ask
+> Claude to analyze the repo for you. It'll know where to put everything if you find it useful.**
+
+It's all plain **git + bash** (plus `jq` for two hooks). No language lock-in, no proprietary
+tooling, nothing to learn.
 
 ## What's inside
 
@@ -54,7 +57,19 @@ pushes your work, then writes a structured resume document to `~/.handoff/` and 
 copy-paste prompt to bootstrap the next session — instead of re-reading the whole transcript.
 On the next session it auto-detects and consumes the matching handoff.
 
-## Install
+## Use it (the lazy way) ✅
+
+1. Clone or download this repo somewhere on your machine.
+2. Open **your** project in Claude Code.
+3. Tell Claude something like:
+
+   > *"Look at the `claude-but-useful` repo at `<path-or-URL>` and set it up in this project."*
+
+That's it. Claude reads the structure, copies the right files into the right places, makes the
+hooks executable, and (if you want) wires up pre-commit. Not sure what a guard does? Ask it to
+explain that first — then decide what to keep.
+
+## Install it yourself (manual)
 
 1. **Copy the kit into your project root:**
 
